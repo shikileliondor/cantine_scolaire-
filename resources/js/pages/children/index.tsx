@@ -5,7 +5,7 @@ import EmptyState from '@/components/app/EmptyState';
 import { fullName, labelFromValue } from '@/components/app/formatters';
 import PageHeader from '@/components/app/PageHeader';
 import Pagination from '@/components/app/Pagination';
-import { useTeamUrl } from '@/components/app/routes';
+import { useChildrenRoutes } from '@/components/app/routes';
 
 type Child = {
     id: number;
@@ -33,7 +33,7 @@ export default function ChildrenIndex({
     children,
     filters = {},
 }: ChildrenIndexProps) {
-    const teamUrl = useTeamUrl();
+    const childrenRoutes = useChildrenRoutes();
     const rows = rowsFrom(children);
     const links = !Array.isArray(children) ? children?.links : undefined;
 
@@ -52,7 +52,7 @@ export default function ChildrenIndex({
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         router.get(
-            teamUrl('children'),
+            childrenRoutes.index(),
             { search: form.get('search') },
             { preserveState: true, replace: true },
         );
@@ -60,7 +60,7 @@ export default function ChildrenIndex({
 
     const destroy = (child: Child) => {
         if (window.confirm(`Supprimer ${fullName(child)} ?`)) {
-            router.delete(teamUrl(`children/${child.id}`));
+            router.delete(childrenRoutes.destroy(child.id));
         }
     };
 
@@ -72,7 +72,7 @@ export default function ChildrenIndex({
                 description="Liste des enfants inscrits à la cantine."
                 actions={
                     <Link
-                        href={teamUrl('children/create')}
+                        href={childrenRoutes.create()}
                         className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                     >
                         <Plus className="size-4" /> Ajouter un enfant
@@ -143,7 +143,7 @@ export default function ChildrenIndex({
                     </button>
                     {filters.search ? (
                         <Link
-                            href={teamUrl('children')}
+                            href={childrenRoutes.index()}
                             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50"
                         >
                             Réinitialiser
@@ -190,8 +190,8 @@ export default function ChildrenIndex({
                                         </td>
                                         <td className="px-5 py-4 text-right">
                                             <Link
-                                                href={teamUrl(
-                                                    `children/${child.id}/edit`,
+                                                href={childrenRoutes.edit(
+                                                    child.id,
                                                 )}
                                                 className="mr-3 font-semibold text-blue-700 hover:text-blue-900"
                                             >
@@ -220,7 +220,7 @@ export default function ChildrenIndex({
                     description="Ajoutez le premier enfant pour démarrer la gestion de la cantine."
                     actions={
                         <Link
-                            href={teamUrl('children/create')}
+                            href={childrenRoutes.create()}
                             className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
                         >
                             <Plus className="size-4" /> Créer une fiche enfant
