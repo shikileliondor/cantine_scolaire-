@@ -2,39 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Payments\StorePaymentRequest;
-use App\Http\Requests\Payments\UpdatePaymentRequest;
+use App\Http\Requests\PaymentRequest;
 use App\Models\Child;
 use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PaymentController extends Controller
 {
     /**
-     * Display a paginated listing of payments.
+     * Display a listing of payments.
      */
     public function index(Request $request): Response
     {
-        $payments = Payment::query()
-            ->with('child')
-            ->when($request->date('payment_date'), fn ($query, $paymentDate) => $query->whereDate('payment_date', $paymentDate))
-            ->when($request->integer('child_id') > 0, fn ($query) => $query->where('child_id', $request->integer('child_id')))
-            ->when($request->string('payment_type')->toString() !== '', fn ($query) => $query->where('payment_type', $request->string('payment_type')->toString()))
-            ->when($request->string('payment_method')->toString() !== '', fn ($query) => $query->where('payment_method', $request->string('payment_method')->toString()))
-            ->latest('payment_date')
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
-
-        return Inertia::render('Payments/Index', [
-            'payments' => $payments,
-            'filters' => $request->only(['payment_date', 'child_id', 'payment_type', 'payment_method']),
-            'paymentTypes' => ['daily', 'weekly', 'monthly', 'custom'],
-            'paymentMethods' => ['cash', 'mobile_money', 'bank_transfer', 'other'],
+        return Inertia::render('payments/index', [
+            'payments' => Payment::with('child')
+                ->when($request->filled('child_id'), fn ($query) => $query->where('child_id', $request->integer('child_id')))
+                ->when($request->filled('date'), fn ($query) => $query->whereDate('payment_date', $request->date('date')))
+                ->when($request->filled('type'), fn ($query) => $query->where('payment_type', $request->string('type')))
+                ->when($request->filled('mode'), fn ($query) => $query->where('payment_method', $request->string('mode')))
+                ->latest('payment_date')
+                ->paginate(10)
+                ->withQueryString(),
+            'children' => Child::where('status', 'active')->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
+            'filters' => $request->only(['child_id', 'date', 'type', 'mode']),
         ]);
     }
 
@@ -43,23 +36,21 @@ class PaymentController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Payments/Create', [
-            'children' => $this->childrenForSelect(),
-            'paymentTypes' => ['daily', 'weekly', 'monthly', 'custom'],
-            'paymentMethods' => ['cash', 'mobile_money', 'bank_transfer', 'other'],
+        return Inertia::render('payments/create', [
+            'children' => Child::where('status', 'active')->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }
 
     /**
      * Store a newly created payment.
      */
-    public function store(StorePaymentRequest $request): RedirectResponse
+    public function store(PaymentRequest $request): RedirectResponse
     {
         Payment::create($request->validated());
 
-        return redirect()
-            ->route('payments.index')
-            ->with('success', __('Payment created successfully.'));
+        Inertia::flash('success', 'Paiement ajouté avec succès.');
+
+        return redirect()->route('payments.index', ['current_team' => request()->route('current_team')]);
     }
 
     /**
@@ -67,24 +58,22 @@ class PaymentController extends Controller
      */
     public function edit(Payment $payment): Response
     {
-        return Inertia::render('Payments/Edit', [
-            'payment' => $payment->load('child'),
-            'children' => $this->childrenForSelect(),
-            'paymentTypes' => ['daily', 'weekly', 'monthly', 'custom'],
-            'paymentMethods' => ['cash', 'mobile_money', 'bank_transfer', 'other'],
+        return Inertia::render('payments/edit', [
+            'payment' => $payment,
+            'children' => Child::where('status', 'active')->orWhere('id', $payment->child_id)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }
 
     /**
      * Update the specified payment.
      */
-    public function update(UpdatePaymentRequest $request, Payment $payment): RedirectResponse
+    public function update(PaymentRequest $request, Payment $payment): RedirectResponse
     {
         $payment->update($request->validated());
 
-        return redirect()
-            ->route('payments.index')
-            ->with('success', __('Payment updated successfully.'));
+        Inertia::flash('success', 'Paiement modifié avec succès.');
+
+        return redirect()->route('payments.index', ['current_team' => request()->route('current_team')]);
     }
 
     /**
@@ -94,20 +83,8 @@ class PaymentController extends Controller
     {
         $payment->delete();
 
-        return redirect()
-            ->route('payments.index')
-            ->with('success', __('Payment deleted successfully.'));
-    }
+        Inertia::flash('success', 'Paiement supprimé avec succès.');
 
-    /**
-     * Get active children used by payment forms.
-     */
-    private function childrenForSelect(): Collection
-    {
-        return Child::query()
-            ->where('status', 'active')
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name', 'matricule', 'class_name']);
+        return redirect()->route('payments.index', ['current_team' => request()->route('current_team')]);
     }
 }

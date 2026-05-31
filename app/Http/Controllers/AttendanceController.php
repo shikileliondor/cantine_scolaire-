@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Attendances\StoreAttendanceRequest;
-use App\Http\Requests\Attendances\UpdateAttendanceRequest;
+use App\Http\Requests\AttendanceDailyRequest;
 use App\Models\Attendance;
 use App\Models\Child;
 use Illuminate\Http\RedirectResponse;
@@ -15,139 +14,55 @@ use Inertia\Response;
 class AttendanceController extends Controller
 {
     /**
-     * Display a paginated listing of attendances.
+     * Display attendance history.
      */
     public function index(Request $request): Response
     {
-        $attendances = Attendance::query()
-            ->with('child')
-            ->when($request->date('attendance_date'), fn ($query, $attendanceDate) => $query->whereDate('attendance_date', $attendanceDate))
-            ->when($request->integer('child_id') > 0, fn ($query) => $query->where('child_id', $request->integer('child_id')))
-            ->latest('attendance_date')
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
-
-        return Inertia::render('Attendances/Index', [
-            'attendances' => $attendances,
-            'filters' => $request->only(['attendance_date', 'child_id']),
+        return Inertia::render('attendances/index', [
+            'attendances' => Attendance::with('child')
+                ->when($request->filled('date'), fn ($query) => $query->whereDate('attendance_date', $request->date('date')))
+                ->latest('attendance_date')
+                ->paginate(10)
+                ->withQueryString(),
+            'filters' => $request->only('date'),
         ]);
     }
 
     /**
-     * Display the daily attendance page for a selected date.
+     * Show the daily attendance form.
      */
     public function daily(Request $request): Response
     {
-        $attendanceDate = $this->requestedDate($request);
+        $date = $request->filled('date') ? $request->date('date')->toDateString() : Carbon::today()->toDateString();
 
-        $children = Child::query()
-            ->where('status', 'active')
-            ->with(['attendances' => fn ($query) => $query->whereDate('attendance_date', $attendanceDate)])
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name', 'matricule', 'class_name']);
-
-        return Inertia::render('Attendances/Daily', [
-            'date' => $attendanceDate,
-            'children' => $children,
+        return Inertia::render('attendances/daily', [
+            'children' => Child::where('status', 'active')->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'class_name']),
+            'attendanceDate' => $date,
+            'attendances' => Attendance::whereDate('attendance_date', $date)->get(['child_id', 'is_present', 'meal_served', 'notes']),
         ]);
     }
 
     /**
-     * Show the form for creating an attendance.
+     * Store the daily attendance records.
      */
-    public function create(): Response
+    public function storeDaily(AttendanceDailyRequest $request): RedirectResponse
     {
-        return Inertia::render('Attendances/Daily', [
-            'date' => now()->toDateString(),
-            'children' => Child::query()
-                ->where('status', 'active')
-                ->orderBy('last_name')
-                ->orderBy('first_name')
-                ->get(['id', 'first_name', 'last_name', 'matricule', 'class_name']),
-        ]);
-    }
-
-    /**
-     * Store or update a daily attendance record.
-     */
-    public function store(StoreAttendanceRequest $request): RedirectResponse
-    {
-        $validated = $request->validated();
-
-        $attendance = Attendance::withTrashed()->updateOrCreate(
-            [
-                'child_id' => $validated['child_id'],
-                'attendance_date' => $validated['attendance_date'],
-            ],
-            [
-                'is_present' => $validated['is_present'],
-                'meal_served' => $validated['meal_served'],
-                'notes' => $validated['notes'] ?? null,
-            ],
-        );
-
-        if ($attendance->trashed()) {
-            $attendance->restore();
+        foreach ($request->validated('attendances') as $attendance) {
+            Attendance::updateOrCreate(
+                [
+                    'child_id' => $attendance['child_id'],
+                    'attendance_date' => $request->validated('attendance_date'),
+                ],
+                [
+                    'is_present' => (bool) ($attendance['is_present'] ?? false),
+                    'meal_served' => (bool) ($attendance['meal_served'] ?? false),
+                    'notes' => $attendance['notes'] ?? null,
+                ],
+            );
         }
 
-        return redirect()
-            ->route('attendances.daily', ['date' => $validated['attendance_date']])
-            ->with('success', __('Attendance saved successfully.'));
-    }
+        Inertia::flash('success', 'Présences enregistrées avec succès.');
 
-    /**
-     * Show the form for editing an attendance.
-     */
-    public function edit(Attendance $attendance): Response
-    {
-        return Inertia::render('Attendances/Daily', [
-            'date' => $attendance->attendance_date->toDateString(),
-            'attendance' => $attendance->load('child'),
-            'children' => Child::query()
-                ->where('status', 'active')
-                ->orderBy('last_name')
-                ->orderBy('first_name')
-                ->get(['id', 'first_name', 'last_name', 'matricule', 'class_name']),
-        ]);
-    }
-
-    /**
-     * Update the specified attendance.
-     */
-    public function update(UpdateAttendanceRequest $request, Attendance $attendance): RedirectResponse
-    {
-        $attendance->update($request->validated());
-
-        return redirect()
-            ->route('attendances.daily', ['date' => $attendance->attendance_date->toDateString()])
-            ->with('success', __('Attendance updated successfully.'));
-    }
-
-    /**
-     * Remove the specified attendance.
-     */
-    public function destroy(Attendance $attendance): RedirectResponse
-    {
-        $attendanceDate = $attendance->attendance_date->toDateString();
-
-        $attendance->delete();
-
-        return redirect()
-            ->route('attendances.daily', ['date' => $attendanceDate])
-            ->with('success', __('Attendance deleted successfully.'));
-    }
-
-    /**
-     * Get the requested attendance date, defaulting to today.
-     */
-    private function requestedDate(Request $request): string
-    {
-        if ($request->date('date')) {
-            return Carbon::parse($request->date('date'))->toDateString();
-        }
-
-        return now()->toDateString();
+        return redirect()->route('attendances.daily', ['current_team' => request()->route('current_team'), 'date' => $request->validated('attendance_date')]);
     }
 }

@@ -14,10 +14,11 @@ Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
-        Route::get('attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
         Route::resource('children', ChildController::class)->except(['show']);
         Route::resource('payments', PaymentController::class)->except(['show']);
-        Route::resource('attendances', AttendanceController::class)->except(['show']);
+        Route::get('attendances', [AttendanceController::class, 'index'])->name('attendances.index');
+        Route::get('attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
+        Route::post('attendances/daily', [AttendanceController::class, 'storeDaily'])->name('attendances.daily.store');
     });
 
 Route::middleware(['auth'])->group(function () {

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Children\StoreChildRequest;
-use App\Http\Requests\Children\UpdateChildRequest;
+use App\Http\Requests\ChildRequest;
 use App\Models\Child;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,20 +12,28 @@ use Inertia\Response;
 class ChildController extends Controller
 {
     /**
-     * Display a paginated listing of children.
+     * Display a listing of children.
      */
     public function index(Request $request): Response
     {
-        $children = Child::query()
-            ->when($request->string('status')->toString() !== '', fn ($query) => $query->where('status', $request->string('status')->toString()))
-            ->when($request->string('class_name')->toString() !== '', fn ($query) => $query->where('class_name', $request->string('class_name')->toString()))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        $search = $request->string('search')->toString();
 
-        return Inertia::render('Children/Index', [
-            'children' => $children,
-            'filters' => $request->only(['status', 'class_name']),
+        return Inertia::render('children/index', [
+            'children' => Child::query()
+                ->when($search !== '', function ($query) use ($search): void {
+                    $query->where(function ($query) use ($search): void {
+                        $query->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('matricule', 'like', "%{$search}%")
+                            ->orWhere('class_name', 'like', "%{$search}%");
+                    });
+                })
+                ->latest()
+                ->paginate(10)
+                ->withQueryString(),
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
@@ -35,21 +42,19 @@ class ChildController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Children/Create', [
-            'statuses' => ['active', 'inactive'],
-        ]);
+        return Inertia::render('children/create');
     }
 
     /**
      * Store a newly created child.
      */
-    public function store(StoreChildRequest $request): RedirectResponse
+    public function store(ChildRequest $request): RedirectResponse
     {
         Child::create($request->validated());
 
-        return redirect()
-            ->route('children.index')
-            ->with('success', __('Child created successfully.'));
+        Inertia::flash('success', 'Enfant ajouté avec succès.');
+
+        return redirect()->route('children.index', ['current_team' => request()->route('current_team')]);
     }
 
     /**
@@ -57,22 +62,21 @@ class ChildController extends Controller
      */
     public function edit(Child $child): Response
     {
-        return Inertia::render('Children/Edit', [
+        return Inertia::render('children/edit', [
             'child' => $child,
-            'statuses' => ['active', 'inactive'],
         ]);
     }
 
     /**
      * Update the specified child.
      */
-    public function update(UpdateChildRequest $request, Child $child): RedirectResponse
+    public function update(ChildRequest $request, Child $child): RedirectResponse
     {
         $child->update($request->validated());
 
-        return redirect()
-            ->route('children.index')
-            ->with('success', __('Child updated successfully.'));
+        Inertia::flash('success', 'Enfant modifié avec succès.');
+
+        return redirect()->route('children.index', ['current_team' => request()->route('current_team')]);
     }
 
     /**
@@ -82,8 +86,8 @@ class ChildController extends Controller
     {
         $child->delete();
 
-        return redirect()
-            ->route('children.index')
-            ->with('success', __('Child deleted successfully.'));
+        Inertia::flash('success', 'Enfant supprimé avec succès.');
+
+        return redirect()->route('children.index', ['current_team' => request()->route('current_team')]);
     }
 }
