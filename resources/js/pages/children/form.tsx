@@ -1,4 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
+import { ClipboardList, GraduationCap, UserRound } from 'lucide-react';
+import type { FormEvent } from 'react';
 import { useTeamUrl } from '@/components/app/routes';
 
 type ChildFormData = {
@@ -48,7 +50,7 @@ export default function ChildForm({
             notes: child.notes ?? '',
         });
 
-    const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         if (method === 'post') {
@@ -59,114 +61,178 @@ export default function ChildForm({
     };
 
     return (
-        <form
-            onSubmit={submit}
-            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-            <div className="grid gap-5 md:grid-cols-2">
-                <label className="block text-sm font-medium text-slate-700">
-                    Prénom
-                    <input
-                        value={data.first_name}
-                        onChange={(e) => setData('first_name', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.first_name} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Nom
-                    <input
-                        value={data.last_name}
-                        onChange={(e) => setData('last_name', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.last_name} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Matricule
-                    <input
-                        value={data.matricule}
-                        onChange={(e) => setData('matricule', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.matricule} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Genre
-                    <select
-                        value={data.gender}
-                        onChange={(e) => setData('gender', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    >
-                        <option value="">Non renseigné</option>
-                        <option value="male">Garçon</option>
-                        <option value="female">Fille</option>
-                    </select>
-                    <FieldError message={errors.gender} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Date de naissance
-                    <input
-                        type="date"
-                        value={data.birth_date}
-                        onChange={(e) => setData('birth_date', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.birth_date} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Classe
-                    <input
-                        value={data.class_name}
-                        onChange={(e) => setData('class_name', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.class_name} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Nom du parent
-                    <input
-                        value={data.parent_name}
-                        onChange={(e) => setData('parent_name', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.parent_name} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Contact parent
-                    <input
-                        value={data.parent_phone}
-                        onChange={(e) =>
-                            setData('parent_phone', e.target.value)
-                        }
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.parent_phone} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700">
-                    Statut
-                    <select
-                        value={data.status}
-                        onChange={(e) => setData('status', e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    >
-                        <option value="active">Actif</option>
-                        <option value="inactive">Inactif</option>
-                    </select>
-                    <FieldError message={errors.status} />
-                </label>
-                <label className="block text-sm font-medium text-slate-700 md:col-span-2">
-                    Notes
-                    <textarea
-                        value={data.notes}
-                        onChange={(e) => setData('notes', e.target.value)}
-                        rows={4}
-                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
-                    />
-                    <FieldError message={errors.notes} />
-                </label>
-            </div>
-            <div className="mt-6 flex items-center justify-end gap-3">
+        <form onSubmit={submit} className="space-y-5">
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                        <UserRound className="size-5" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-950">
+                            Identité de l'enfant
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            Renseignez les informations administratives
+                            principales.
+                        </p>
+                    </div>
+                </div>
+                <div className="grid gap-5 md:grid-cols-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                        Prénom
+                        <input
+                            value={data.first_name}
+                            onChange={(e) =>
+                                setData('first_name', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.first_name} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Nom
+                        <input
+                            value={data.last_name}
+                            onChange={(e) =>
+                                setData('last_name', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.last_name} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Matricule
+                        <input
+                            value={data.matricule}
+                            onChange={(e) =>
+                                setData('matricule', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.matricule} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Genre
+                        <select
+                            value={data.gender}
+                            onChange={(e) => setData('gender', e.target.value)}
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        >
+                            <option value="">Non renseigné</option>
+                            <option value="male">Garçon</option>
+                            <option value="female">Fille</option>
+                        </select>
+                        <FieldError message={errors.gender} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Date de naissance
+                        <input
+                            type="date"
+                            value={data.birth_date}
+                            onChange={(e) =>
+                                setData('birth_date', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.birth_date} />
+                    </label>
+                </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                        <GraduationCap className="size-5" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-950">
+                            Scolarité et parent
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            Associez la classe et les coordonnées du
+                            responsable.
+                        </p>
+                    </div>
+                </div>
+                <div className="grid gap-5 md:grid-cols-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                        Classe
+                        <input
+                            value={data.class_name}
+                            onChange={(e) =>
+                                setData('class_name', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.class_name} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Nom du parent
+                        <input
+                            value={data.parent_name}
+                            onChange={(e) =>
+                                setData('parent_name', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.parent_name} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700">
+                        Contact parent
+                        <input
+                            value={data.parent_phone}
+                            onChange={(e) =>
+                                setData('parent_phone', e.target.value)
+                            }
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.parent_phone} />
+                    </label>
+                </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                        <ClipboardList className="size-5" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-950">
+                            Suivi cantine
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            Définissez le statut de l'enfant et les notes utiles
+                            à l'équipe.
+                        </p>
+                    </div>
+                </div>
+                <div className="grid gap-5 md:grid-cols-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                        Statut
+                        <select
+                            value={data.status}
+                            onChange={(e) => setData('status', e.target.value)}
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        >
+                            <option value="active">Actif</option>
+                            <option value="inactive">Inactif</option>
+                        </select>
+                        <FieldError message={errors.status} />
+                    </label>
+                    <label className="block text-sm font-medium text-slate-700 md:col-span-2">
+                        Notes
+                        <textarea
+                            value={data.notes}
+                            onChange={(e) => setData('notes', e.target.value)}
+                            rows={4}
+                            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2"
+                        />
+                        <FieldError message={errors.notes} />
+                    </label>
+                </div>
+            </section>
+
+            <div className="flex items-center justify-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <Link
                     href={teamUrl('children')}
                     className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
