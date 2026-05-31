@@ -26,6 +26,8 @@ class CanteenManagementTest extends TestCase
             'status' => 'active',
         ]);
 
+        $this->assertFileExists(resource_path('js/pages/children/index.tsx'));
+
         $this->actingAs($user)
             ->get(route('children.index', ['current_team' => $team->slug]))
             ->assertOk()
@@ -35,12 +37,16 @@ class CanteenManagementTest extends TestCase
                 ->where('filters.search', ''),
             );
 
+        $this->assertFileExists(resource_path('js/pages/children/create.tsx'));
+
         $this->actingAs($user)
             ->get(route('children.create', ['current_team' => $team->slug]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('children/create'),
             );
+
+        $this->assertFileExists(resource_path('js/pages/children/edit.tsx'));
 
         $this->actingAs($user)
             ->get(route('children.edit', ['current_team' => $team->slug, 'child' => $child]))
