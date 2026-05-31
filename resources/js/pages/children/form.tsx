@@ -1,7 +1,7 @@
 import { Link, useForm } from '@inertiajs/react';
 import { ClipboardList, GraduationCap, UserRound } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { useTeamUrl } from '@/components/app/routes';
+import { useChildrenRoutes } from '@/components/app/routes';
 
 type ChildFormData = {
     first_name: string;
@@ -35,7 +35,7 @@ export default function ChildForm({
     method,
     action,
 }: ChildFormProps) {
-    const teamUrl = useTeamUrl();
+    const childrenRoutes = useChildrenRoutes();
     const { data, setData, post, put, processing, errors } =
         useForm<ChildFormData>({
             first_name: child.first_name ?? '',
@@ -234,7 +234,7 @@ export default function ChildForm({
 
             <div className="flex items-center justify-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <Link
-                    href={teamUrl('children')}
+                    href={childrenRoutes.index()}
                     className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
                     Retour

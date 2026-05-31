@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import PageHeader from '@/components/app/PageHeader';
-import { useTeamUrl } from '@/components/app/routes';
+import { useChildrenRoutes } from '@/components/app/routes';
 import ChildForm from './form';
 
 type Child = {
@@ -18,7 +18,7 @@ type Child = {
 };
 
 export default function EditChild({ child }: { child: Child }) {
-    const teamUrl = useTeamUrl();
+    const childrenRoutes = useChildrenRoutes();
 
     return (
         <>
@@ -29,7 +29,7 @@ export default function EditChild({ child }: { child: Child }) {
             />
             <ChildForm
                 method="put"
-                action={teamUrl(`children/${child.id}`)}
+                action={childrenRoutes.update(child.id)}
                 child={child}
                 submitLabel="Enregistrer"
             />

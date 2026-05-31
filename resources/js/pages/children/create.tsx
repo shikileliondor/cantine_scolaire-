@@ -1,10 +1,10 @@
 import { Head } from '@inertiajs/react';
 import PageHeader from '@/components/app/PageHeader';
-import { useTeamUrl } from '@/components/app/routes';
+import { useChildrenRoutes } from '@/components/app/routes';
 import ChildForm from './form';
 
 export default function CreateChild() {
-    const teamUrl = useTeamUrl();
+    const childrenRoutes = useChildrenRoutes();
 
     return (
         <>
@@ -15,7 +15,7 @@ export default function CreateChild() {
             />
             <ChildForm
                 method="post"
-                action={teamUrl('children')}
+                action={childrenRoutes.store()}
                 submitLabel="Enregistrer"
             />
         </>
