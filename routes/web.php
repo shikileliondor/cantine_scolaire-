@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ChildController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Support\Facades\Route;
@@ -9,7 +13,12 @@ Route::inertia('/', 'welcome')->name('home');
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
-        Route::inertia('dashboard', 'dashboard')->name('dashboard');
+        Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::resource('children', ChildController::class)->except(['show']);
+        Route::resource('payments', PaymentController::class)->except(['show']);
+        Route::get('attendances', [AttendanceController::class, 'index'])->name('attendances.index');
+        Route::get('attendances/daily', [AttendanceController::class, 'daily'])->name('attendances.daily');
+        Route::post('attendances/daily', [AttendanceController::class, 'storeDaily'])->name('attendances.daily.store');
     });
 
 Route::middleware(['auth'])->group(function () {
