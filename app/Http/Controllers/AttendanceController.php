@@ -18,7 +18,7 @@ class AttendanceController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('attendances/index', [
+        return Inertia::render('Attendances/index', [
             'attendances' => Attendance::with('child')
                 ->when($request->filled('date'), fn ($query) => $query->whereDate('attendance_date', $request->date('date')))
                 ->latest('attendance_date')
@@ -35,7 +35,7 @@ class AttendanceController extends Controller
     {
         $date = $request->filled('date') ? $request->date('date')->toDateString() : Carbon::today()->toDateString();
 
-        return Inertia::render('attendances/daily', [
+        return Inertia::render('Attendances/daily', [
             'children' => Child::where('status', 'active')->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'class_name']),
             'attendanceDate' => $date,
             'attendances' => Attendance::whereDate('attendance_date', $date)->get(['child_id', 'is_present', 'meal_served', 'notes']),
@@ -47,11 +47,13 @@ class AttendanceController extends Controller
      */
     public function storeDaily(AttendanceDailyRequest $request): RedirectResponse
     {
+        $attendanceDate = $request->date('attendance_date')->toDateString();
+
         foreach ($request->validated('attendances') as $attendance) {
             Attendance::updateOrCreate(
                 [
                     'child_id' => $attendance['child_id'],
-                    'attendance_date' => $request->validated('attendance_date'),
+                    'attendance_date' => $attendanceDate,
                 ],
                 [
                     'is_present' => (bool) ($attendance['is_present'] ?? false),

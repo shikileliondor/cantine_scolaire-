@@ -18,7 +18,7 @@ class ChildController extends Controller
     {
         $search = $request->string('search')->toString();
 
-        return Inertia::render('children/index', [
+        return Inertia::render('Children/index', [
             'children' => Child::query()
                 ->when($search !== '', function ($query) use ($search): void {
                     $query->where(function ($query) use ($search): void {
@@ -42,7 +42,7 @@ class ChildController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('children/create');
+        return Inertia::render('Children/create');
     }
 
     /**
@@ -60,9 +60,9 @@ class ChildController extends Controller
     /**
      * Show the form for editing a child.
      */
-    public function edit(Child $child): Response
+    public function edit(string $currentTeam, Child $child): Response
     {
-        return Inertia::render('children/edit', [
+        return Inertia::render('Children/edit', [
             'child' => $child,
         ]);
     }
@@ -70,7 +70,7 @@ class ChildController extends Controller
     /**
      * Update the specified child.
      */
-    public function update(ChildRequest $request, Child $child): RedirectResponse
+    public function update(ChildRequest $request, string $currentTeam, Child $child): RedirectResponse
     {
         $child->update($request->validated());
 
@@ -82,7 +82,7 @@ class ChildController extends Controller
     /**
      * Remove the specified child.
      */
-    public function destroy(Child $child): RedirectResponse
+    public function destroy(string $currentTeam, Child $child): RedirectResponse
     {
         $child->delete();
 

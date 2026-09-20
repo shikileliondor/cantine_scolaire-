@@ -37,6 +37,9 @@ createInertiaApp({
             case name.startsWith('teams/'):
                 return [AppLayout, SettingsLayout];
             case name === 'dashboard':
+            case name.startsWith('Children/'):
+            case name.startsWith('Payments/'):
+            case name.startsWith('Attendances/'):
             case name.startsWith('children/'):
             case name.startsWith('payments/'):
             case name.startsWith('attendances/'):

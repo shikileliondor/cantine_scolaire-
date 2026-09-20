@@ -17,7 +17,7 @@ class PaymentController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('payments/index', [
+        return Inertia::render('Payments/index', [
             'payments' => Payment::with('child')
                 ->when($request->filled('child_id'), fn ($query) => $query->where('child_id', $request->integer('child_id')))
                 ->when($request->filled('date'), fn ($query) => $query->whereDate('payment_date', $request->date('date')))
@@ -36,7 +36,7 @@ class PaymentController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('payments/create', [
+        return Inertia::render('Payments/create', [
             'children' => Child::where('status', 'active')->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
     }
@@ -56,9 +56,9 @@ class PaymentController extends Controller
     /**
      * Show the form for editing a payment.
      */
-    public function edit(Payment $payment): Response
+    public function edit(string $currentTeam, Payment $payment): Response
     {
-        return Inertia::render('payments/edit', [
+        return Inertia::render('Payments/edit', [
             'payment' => $payment,
             'children' => Child::where('status', 'active')->orWhere('id', $payment->child_id)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ]);
@@ -67,7 +67,7 @@ class PaymentController extends Controller
     /**
      * Update the specified payment.
      */
-    public function update(PaymentRequest $request, Payment $payment): RedirectResponse
+    public function update(PaymentRequest $request, string $currentTeam, Payment $payment): RedirectResponse
     {
         $payment->update($request->validated());
 
@@ -79,7 +79,7 @@ class PaymentController extends Controller
     /**
      * Remove the specified payment.
      */
-    public function destroy(Payment $payment): RedirectResponse
+    public function destroy(string $currentTeam, Payment $payment): RedirectResponse
     {
         $payment->delete();
 

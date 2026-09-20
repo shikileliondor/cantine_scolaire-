@@ -40,19 +40,19 @@ class CanteenApiController extends Controller
         return response()->json($child, 201);
     }
 
-    public function showChild(Child $child): JsonResponse
+    public function showChild(string $currentTeam, Child $child): JsonResponse
     {
         return response()->json($child);
     }
 
-    public function updateChild(ChildRequest $request, Child $child): JsonResponse
+    public function updateChild(ChildRequest $request, string $currentTeam, Child $child): JsonResponse
     {
         $child->update($request->validated());
 
         return response()->json($child->fresh());
     }
 
-    public function destroyChild(Child $child): JsonResponse
+    public function destroyChild(string $currentTeam, Child $child): JsonResponse
     {
         $child->delete();
 
@@ -79,19 +79,19 @@ class CanteenApiController extends Controller
         return response()->json($payment, 201);
     }
 
-    public function showPayment(Payment $payment): JsonResponse
+    public function showPayment(string $currentTeam, Payment $payment): JsonResponse
     {
         return response()->json($payment->load('child'));
     }
 
-    public function updatePayment(PaymentRequest $request, Payment $payment): JsonResponse
+    public function updatePayment(PaymentRequest $request, string $currentTeam, Payment $payment): JsonResponse
     {
         $payment->update($request->validated());
 
         return response()->json($payment->fresh()->load('child'));
     }
 
-    public function destroyPayment(Payment $payment): JsonResponse
+    public function destroyPayment(string $currentTeam, Payment $payment): JsonResponse
     {
         $payment->delete();
 
@@ -110,11 +110,13 @@ class CanteenApiController extends Controller
 
     public function storeDailyAttendances(AttendanceDailyRequest $request): JsonResponse
     {
-        $records = collect($request->validated('attendances'))->map(function (array $attendance) use ($request): Attendance {
+        $attendanceDate = $request->date('attendance_date')->toDateString();
+
+        $records = collect($request->validated('attendances'))->map(function (array $attendance) use ($attendanceDate): Attendance {
             return Attendance::updateOrCreate(
                 [
                     'child_id' => $attendance['child_id'],
-                    'attendance_date' => $request->validated('attendance_date'),
+                    'attendance_date' => $attendanceDate,
                 ],
                 [
                     'is_present' => (bool) ($attendance['is_present'] ?? false),
@@ -129,7 +131,7 @@ class CanteenApiController extends Controller
         ], 201);
     }
 
-    public function destroyAttendance(Attendance $attendance): JsonResponse
+    public function destroyAttendance(string $currentTeam, Attendance $attendance): JsonResponse
     {
         $attendance->delete();
 

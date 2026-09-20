@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 #[Fillable([
     'child_id',
@@ -26,6 +28,18 @@ class Attendance extends Model
     public function child(): BelongsTo
     {
         return $this->belongsTo(Child::class);
+    }
+
+    /**
+     * Store attendance dates as date-only values.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function attendanceDate(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $value): string => Carbon::parse($value)->toDateString(),
+        );
     }
 
     /**
