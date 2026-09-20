@@ -17,12 +17,19 @@ if (! is_string($expectedToken) || $expectedToken === '' || ! hash_equals($expec
 }
 
 $zipPath = $basePath.'/deploy.zip';
+$archivePath = $basePath.'/deployments/deploy-'.date('Ymd-His').'.zip';
 
 if (! is_file($zipPath)) {
     http_response_code(404);
     echo json_encode(['message' => 'deploy.zip was not found']);
     exit;
 }
+
+if (! is_dir(dirname($archivePath))) {
+    mkdir(dirname($archivePath), 0755, true);
+}
+
+copy($zipPath, $archivePath);
 
 $zip = new ZipArchive;
 

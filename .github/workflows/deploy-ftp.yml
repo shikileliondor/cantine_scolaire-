@@ -2,6 +2,10 @@ name: deploy-ftp
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
 
 concurrency:
   group: ftp-production-deploy
@@ -58,6 +62,9 @@ jobs:
           cd ../..
           mkdir -p build/upload/public
           cp public/deploy-extract.php build/upload/public/deploy-extract.php
+
+      - name: Show ZIP package
+        run: ls -lah build/upload
 
       - name: Upload ZIP by FTP
         uses: SamKirkland/FTP-Deploy-Action@690c13f783cbc908a82dd6f5990b3ffad34f5876 # v4.3.6
