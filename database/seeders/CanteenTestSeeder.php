@@ -23,7 +23,7 @@ class CanteenTestSeeder extends Seeder
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('1234'),
                 'email_verified_at' => Carbon::parse('2026-05-31 08:00:00'),
             ],
         );
