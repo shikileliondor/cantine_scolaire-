@@ -272,3 +272,23 @@ await apiRequest(`/api/${teamSlug}/children`, {
 - Les listes paginees retournent la structure Laravel standard: `data`, `links`, `meta`.
 - `DELETE` retourne `204 No Content`.
 - Les erreurs de validation retournent `422` avec les erreurs Laravel.
+
+## Deploiement FTP
+
+Le dossier distant attendu pour le workflow GitHub Actions est :
+
+```env
+FTP_SERVER_DIR=public_html/cantine_scolaire-/
+```
+
+Le ZIP temporaire est envoye ici :
+
+```text
+public_html/cantine_scolaire-/deploy.zip
+```
+
+Apres extraction, une copie archivee reste ici :
+
+```text
+public_html/cantine_scolaire-/deployments/deploy-YYYYMMDD-HHMMSS.zip
+```
