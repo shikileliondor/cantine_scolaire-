@@ -1,0 +1,78 @@
+name: deploy-ftp
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          extensions: zip
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Prepare ZIP package
+        run: |
+          mkdir -p build/package build/upload
+          rsync -a ./ build/package \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='build' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*'
+          cd build/package
+          zip -qr ../upload/deploy.zip .
+          cd ../..
+          mkdir -p build/upload/public
+          cp public/deploy-extract.php build/upload/public/deploy-extract.php
+
+      - name: Upload ZIP by FTP
+        uses: SamKirkland/FTP-Deploy-Action@690c13f783cbc908a82dd6f5990b3ffad34f5876 # v4.3.6
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftp
+          local-dir: build/upload/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+
+      - name: Extract ZIP on server
+        run: |
+          curl --fail --show-error --silent \
+            --request POST \
+            --data-urlencode "token=${{ secrets.DEPLOY_TOKEN }}" \
+            "${{ secrets.DEPLOY_EXTRACT_URL }}"
