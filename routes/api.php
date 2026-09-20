@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CanteenApiController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Support\Facades\Route;
+
+Route::post('login', [AuthController::class, 'login'])
+    ->middleware(['web', 'guest', 'throttle:6,1'])
+    ->name('api.login');
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
